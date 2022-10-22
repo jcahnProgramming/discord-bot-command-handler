@@ -36,23 +36,24 @@ class CommandHandler {
                 validation(command)
             }
 
-            const { description, options = [], testOnly } = commandObject
+            const { description, options = [], type, testOnly } = commandObject
 
             this.commands.set(command.commandName, command)
 
-            if (testOnly) {
-                for (const guildId of this._instance.testServers) {
-                    this._slashCommands.create(command.commandName, description, options, guildId)
+            if (type === 'SLASH' || type === 'BOTH')
+            {
+                if (testOnly) {
+                    for (const guildId of this._instance.testServers) {
+                        this._slashCommands.create(command.commandName, description, options, guildId)
+                    }
+                } else {
+                    this._slashCommands.create(
+                        command.commandName, 
+                        description, 
+                        options,
+                    )
                 }
-            } else {
-                this._slashCommands.create(
-                    command.commandName, 
-                    description, 
-                    options
-                )
             }
-
-
         }
     }
 
@@ -78,6 +79,12 @@ class CommandHandler {
                 return
             }
 
+            const { callback, type } = command.commandObject
+
+            if (message && type === 'SLASH') {
+                return
+            }
+
             const usage = { message, args, text: args.join(' '), guild: message.guild }
 
             for (const validation of validations) {
@@ -86,7 +93,7 @@ class CommandHandler {
                 }
             }
 
-            const { callback } = command.commandObject
+            
             
             callback(usage)
             //!ping
